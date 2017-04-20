@@ -29,7 +29,7 @@ public class SlackNotifier {
 
 	public enum SlackTarget {
 
-		CH_INCOMING("https://hooks.slack.com/services/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", "incoming");
+		CH_INCOMING("https://hooks.slack.com/services/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", "incoming");
 		String webHookUrl;
 		String channel;
 
