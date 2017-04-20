@@ -28,9 +28,8 @@ public class SlackNotifier {
 	private RestTemplate restTemplate;
 
 	public enum SlackTarget {
-		// TODO webHookUrl 은 자신의 슬랙 IncomingWebHookAPI로 변경하세요.
-		CH_INCOMING("https://hooks.slack.com/services/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", "incoming");
 
+		CH_INCOMING("https://hooks.slack.com/services/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", "incoming");
 		String webHookUrl;
 		String channel;
 
@@ -44,6 +43,7 @@ public class SlackNotifier {
 	@AllArgsConstructor
 	@NoArgsConstructor
 	@Builder
+	@Component
 	public static class SlackMessageAttachement {
 		private String color;
 		private String pretext;
@@ -56,11 +56,16 @@ public class SlackNotifier {
 	@AllArgsConstructor
 	@NoArgsConstructor
 	@Builder
+	@Component
 	public static class SlackMessage {
 		private String text;
 		private String channel;
 		private List<SlackMessageAttachement> attachments;
 
+		/**
+		 *
+		 * @param attachement
+		 */
 		void addAttachment(SlackMessageAttachement attachement) {
 			if (this.attachments == null) {
 				this.attachments = Lists.newArrayList();
@@ -69,19 +74,50 @@ public class SlackNotifier {
 		}
 	}
 
+	/**
+	 *
+	 * @param target
+	 * @param message
+	 * @return
+	 */
 	public boolean notify(SlackTarget target, SlackMessageAttachement message) {
+
 		log.debug("Notify[target: {}, message: {}]", target, message);
 
-		SlackMessage slackMessage = SlackMessage.builder().channel(target.channel)
-				.attachments(Lists.newArrayList(message)).build();
-		try {
+		SlackMessage slackMessage = SlackMessage.builder().channel(target.channel).attachments(Lists.newArrayList(message)).build();
 
+		return sendToWebHook(target, slackMessage);
+	}
+
+	/**
+	 *
+	 * @param target
+	 * @param message
+	 * @return
+	 */
+	public boolean notify(SlackTarget target, List<SlackMessageAttachement> message) {
+
+		log.debug("Notify[target: {}, message: {}]", target, message);
+
+		SlackMessage slackMessage = SlackMessage.builder().channel(target.channel).attachments(message).build();
+
+		return sendToWebHook(target, slackMessage);
+	}
+
+	/**
+	 *
+	 * @param target
+	 * @param slackMessage
+	 * @return
+	 */
+	private boolean sendToWebHook(SlackTarget target, SlackMessage slackMessage) {
+		try {
 			restTemplate.postForEntity(target.webHookUrl, slackMessage, String.class);
 			return true;
 		} catch (Exception e) {
 			log.error("Occur Exception: {}", e);
 			return false;
 		}
-
 	}
 }
+
